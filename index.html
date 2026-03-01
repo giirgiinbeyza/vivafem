@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VivaFem — Bu sistem tanı koymaz, erken farkındalık sağlar.</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --rose: #E8647A;
+    --rose-light: #F2A0AE;
+    --cream: #FDF6F0;
+    --dark: #1C1218;
+    --muted: #8A7580;
+    --green: #4CAF82;
+    --yellow: #F5C842;
+    --red: #E85555;
+  }
+
+  html { scroll-behavior: smooth; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--dark); overflow-x: hidden; }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.2rem 4rem;
+    background: rgba(253,246,240,0.9);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(232,100,122,0.1);
+  }
+  .logo { font-family: 'Playfair Display', serif; font-size: 1.6rem; color: var(--rose); letter-spacing: -0.02em; }
+  .logo span { font-style: italic; color: var(--dark); }
+  nav a { font-size: 0.82rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+  nav a:hover { color: var(--rose); }
+  .nav-links { display: flex; gap: 2rem; align-items: center; }
+  .nav-cta { background: var(--rose); color: white !important; padding: 0.55rem 1.4rem; border-radius: 100px; transition: transform 0.2s, box-shadow 0.2s !important; }
+  .nav-cta:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(232,100,122,0.35) !important; }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.05); opacity: 0.7; } }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+  @keyframes scanMove { 0% { top: 0; } 100% { top: 100%; } }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: grid; grid-template-columns: 1fr 1fr;
+    align-items: center;
+    padding: 8rem 4rem 4rem;
+    position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: ''; position: absolute; top: -100px; right: -150px;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(232,100,122,0.12) 0%, transparent 70%);
+    border-radius: 50%; animation: pulse 4s ease-in-out infinite;
+  }
+  .hero-text { position: relative; z-index: 2; }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: rgba(232,100,122,0.1); border: 1px solid rgba(232,100,122,0.25);
+    color: var(--rose); font-size: 0.78rem; font-weight: 500;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    padding: 0.4rem 1rem; border-radius: 100px;
+    margin-bottom: 2rem; animation: fadeUp 0.6s ease both;
+  }
+  .hero-badge::before { content: ''; width: 6px; height: 6px; background: var(--rose); border-radius: 50%; animation: blink 1.5s infinite; }
+  h1 { font-family: 'Playfair Display', serif; font-size: clamp(2.6rem, 5vw, 4rem); line-height: 1.1; letter-spacing: -0.03em; margin-bottom: 1rem; animation: fadeUp 0.6s 0.1s ease both; }
+  h1 em { font-style: italic; color: var(--rose); }
+  .hero-slogan {
+    font-size: 0.88rem; font-style: italic; color: var(--rose);
+    background: rgba(232,100,122,0.08); border-left: 3px solid var(--rose);
+    padding: 0.6rem 1rem; border-radius: 0 8px 8px 0;
+    margin-bottom: 1.2rem; animation: fadeUp 0.6s 0.15s ease both;
+  }
+  .hero-sub { font-size: 1rem; line-height: 1.7; color: var(--muted); max-width: 460px; margin-bottom: 2.5rem; animation: fadeUp 0.6s 0.2s ease both; }
+  .hero-actions { display: flex; gap: 1rem; align-items: center; animation: fadeUp 0.6s 0.3s ease both; }
+  .btn-primary { background: var(--rose); color: white; padding: 0.9rem 2rem; border-radius: 100px; font-size: 0.9rem; font-weight: 500; text-decoration: none; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 16px rgba(232,100,122,0.3); }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(232,100,122,0.4); }
+  .btn-ghost { color: var(--dark); font-size: 0.9rem; font-weight: 500; text-decoration: none; display: flex; align-items: center; gap: 0.5rem; transition: gap 0.2s; }
+  .btn-ghost:hover { gap: 0.8rem; }
+  .btn-ghost::after { content: '→'; }
+  .hero-stats { display: flex; gap: 2rem; margin-top: 3rem; animation: fadeUp 0.6s 0.4s ease both; }
+  .stat-num { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; color: var(--dark); line-height: 1; }
+  .stat-label { font-size: 0.75rem; color: var(--muted); margin-top: 0.25rem; }
+
+  /* PHONE MOCKUP */
+  .hero-visual { display: flex; justify-content: center; align-items: center; position: relative; z-index: 2; animation: fadeUp 0.6s 0.2s ease both; }
+  .phone { width: 260px; height: 520px; background: var(--dark); border-radius: 40px; padding: 12px; box-shadow: 0 40px 80px rgba(28,18,24,0.25), 0 0 0 1px rgba(255,255,255,0.1); }
+  .phone-screen { width: 100%; height: 100%; background: #fff; border-radius: 30px; overflow: hidden; display: flex; flex-direction: column; }
+  .phone-status { background: var(--dark); color: white; font-size: 0.6rem; padding: 0.4rem 1rem; display: flex; justify-content: space-between; }
+  .app-header { background: linear-gradient(135deg, #E8647A, #c44d65); padding: 1.2rem 1rem 1rem; color: white; }
+  .app-header-label { font-size: 0.55rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.1em; }
+  .app-header-title { font-family: 'Playfair Display', serif; font-size: 1.1rem; margin-top: 0.1rem; }
+  .app-body { padding: 1rem; flex: 1; }
+  .scan-area { width: 100%; aspect-ratio: 1; background: #f8f8f8; border-radius: 16px; border: 2px dashed #ddd; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+  .scan-icon { font-size: 2rem; margin-bottom: 0.4rem; }
+  .scan-label { font-size: 0.6rem; color: #999; text-align: center; }
+  .scan-line { position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--rose), transparent); animation: scanMove 2s ease-in-out infinite; }
+  .result-chip { margin-top: 0.8rem; background: rgba(76,175,130,0.1); border: 1px solid rgba(76,175,130,0.3); border-radius: 100px; padding: 0.35rem 0.8rem; font-size: 0.6rem; color: var(--green); display: flex; align-items: center; gap: 0.3rem; width: fit-content; margin-inline: auto; }
+  .result-chip::before { content: '●'; font-size: 0.5rem; }
+  .ph-bar-mini { margin-top: 0.8rem; height: 6px; border-radius: 100px; background: linear-gradient(90deg, #E85555, #F5C842, #4CAF82, #4488CC); position: relative; }
+  .ph-indicator { position: absolute; top: -4px; left: 62%; width: 14px; height: 14px; background: white; border: 2px solid var(--dark); border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+  .ph-labels { display: flex; justify-content: space-between; font-size: 0.5rem; color: #999; margin-top: 0.3rem; }
+  .blob { position: absolute; border-radius: 50%; filter: blur(40px); opacity: 0.5; pointer-events: none; }
+  .blob-1 { width: 300px; height: 300px; background: rgba(232,100,122,0.15); top: 10%; right: 5%; }
+  .blob-2 { width: 200px; height: 200px; background: rgba(76,175,130,0.1); bottom: 20%; left: 5%; }
+
+
+  .hero-photos {
+  display: flex;  gap: 1rem;
+  margin-top: 2rem;
+}
+.hero-photos img {
+  width: 550px;
+  height: auto;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(232,100,122,0.2);
+}
+  /* SECTION SHARED */
+  .section-label { font-size: 0.75rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--rose); margin-bottom: 1rem; }
+  .section-title { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 4vw, 2.8rem); letter-spacing: -0.02em; margin-bottom: 3rem; max-width: 540px; line-height: 1.2; }
+
+  /* HOW IT WORKS */
+  .how { padding: 8rem 4rem; }
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; position: relative; }
+  .steps::before { content: ''; position: absolute; top: 3rem; left: calc(16.6% + 1rem); right: calc(16.6% + 1rem); height: 1px; background: var(--rose-light); z-index: 0; }
+  .step { position: relative; z-index: 1; background: white; border-radius: 24px; padding: 2rem; border: 1px solid rgba(232,100,122,0.1); transition: transform 0.3s, box-shadow 0.3s; }
+  .step:hover { transform: translateY(-6px); box-shadow: 0 20px 40px rgba(232,100,122,0.12); }
+  .step-num { width: 52px; height: 52px; background: var(--rose); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Playfair Display', serif; font-size: 1.4rem; margin-bottom: 1.5rem; }
+  .step-icon { font-size: 1.8rem; margin-bottom: 1rem; }
+  .step h3 { font-size: 1rem; font-weight: 500; margin-bottom: 0.6rem; }
+  .step p { font-size: 0.85rem; line-height: 1.6; color: var(--muted); }
+  .step .slide-quote { font-size: 0.78rem; font-style: italic; color: var(--rose); margin-top: 0.8rem; border-top: 1px solid rgba(232,100,122,0.1); padding-top: 0.8rem; }
+
+  /* PAD LAYERS */
+  .layers-section { padding: 6rem 4rem; background: white; }
+  .layers-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: start; }
+  .layers-visual { position: relative; }
+  .pad-stack { display: flex; flex-direction: column; gap: 0; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 60px rgba(28,18,24,0.1); }
+  .pad-layer {
+    padding: 1rem 1.5rem;
+    display: flex; align-items: center; gap: 1rem;
+    cursor: pointer; transition: all 0.2s;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+  }
+  .pad-layer:last-child { border-bottom: none; }
+  .pad-layer:hover { filter: brightness(1.05); }
+  .layer-1 { background: #FDE8D8; }
+  .layer-2 { background: #E8F4FD; }
+  .layer-3 { background: #FDF6D8; }
+  .layer-4 { background: #E8FDF0; }
+  .layer-5 { background: #F0E8FD; }
+  .layer-6 { background: #FDE8E8; }
+  .layer-num { width: 28px; height: 28px; border-radius: 50%; background: rgba(28,18,24,0.15); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; flex-shrink: 0; }
+  .layer-info { flex: 1; }
+  .layer-name { font-size: 0.82rem; font-weight: 500; }
+  .layer-mat { font-size: 0.72rem; color: var(--muted); margin-top: 0.1rem; }
+  .layer-icon { font-size: 1.2rem; }
+
+  .layers-details { }
+  .layer-detail { display: none; }
+  .layer-detail.active { display: block; animation: fadeUp 0.3s ease; }
+  .detail-tag { display: inline-block; background: rgba(232,100,122,0.1); color: var(--rose); font-size: 0.72rem; padding: 0.3rem 0.8rem; border-radius: 100px; margin-bottom: 1rem; font-weight: 500; }
+  .detail-title { font-family: 'Playfair Display', serif; font-size: 1.4rem; margin-bottom: 0.8rem; }
+  .detail-desc { font-size: 0.9rem; line-height: 1.7; color: var(--muted); margin-bottom: 1.2rem; }
+  .detail-quote { font-style: italic; font-size: 0.88rem; color: var(--rose); background: rgba(232,100,122,0.06); border-left: 3px solid var(--rose); padding: 0.8rem 1rem; border-radius: 0 8px 8px 0; }
+
+  /* pH SIMULATOR */
+  .simulator { padding: 6rem 4rem; background: var(--dark); color: white; position: relative; overflow: hidden; }
+  .simulator::before { content: ''; position: absolute; top: -200px; left: -200px; width: 500px; height: 500px; background: radial-gradient(circle, rgba(232,100,122,0.15) 0%, transparent 70%); border-radius: 50%; }
+  .simulator .section-label { color: var(--rose-light); }
+  .simulator .section-title { color: white; }
+  .sim-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; position: relative; z-index: 1; }
+  .sim-desc { font-size: 0.92rem; line-height: 1.7; color: rgba(255,255,255,0.6); margin-bottom: 2rem; }
+  .symptoms-list { display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 2rem; }
+  .symptom-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 0.8rem 1.2rem; border-radius: 12px; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; text-align: left; transition: all 0.2s; display: flex; align-items: center; gap: 0.8rem; }
+  .symptom-btn:hover, .symptom-btn.active { background: rgba(232,100,122,0.15); border-color: rgba(232,100,122,0.4); }
+  .symptom-btn .dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.3); flex-shrink: 0; transition: background 0.2s; }
+  .symptom-btn.active .dot { background: var(--rose); }
+  .scan-btn { width: 100%; background: var(--rose); color: white; border: none; padding: 1rem; border-radius: 12px; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 500; transition: transform 0.2s, box-shadow 0.2s; }
+  .scan-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(232,100,122,0.4); }
+  .sim-result { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 2.5rem; min-height: 400px; display: flex; flex-direction: column; justify-content: center; }
+  .result-header { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 1.5rem; }
+  .ph-display { font-family: 'Playfair Display', serif; font-size: 5rem; font-weight: 700; line-height: 1; margin-bottom: 0.5rem; transition: color 0.5s; }
+  .ph-status { font-size: 1rem; font-weight: 500; margin-bottom: 2rem; transition: color 0.5s; }
+  .ph-bar { height: 10px; border-radius: 100px; background: linear-gradient(90deg, #E85555 0%, #F5C842 35%, #4CAF82 60%, #4488CC 100%); position: relative; margin-bottom: 0.5rem; }
+  .ph-needle { position: absolute; top: -5px; width: 20px; height: 20px; background: white; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.4); transform: translateX(-50%); transition: left 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .ph-scale-labels { display: flex; justify-content: space-between; font-size: 0.7rem; color: rgba(255,255,255,0.4); }
+  .recommendation { margin-top: 1.5rem; background: rgba(255,255,255,0.05); border-radius: 12px; padding: 1rem; font-size: 0.85rem; line-height: 1.6; color: rgba(255,255,255,0.7); border-left: 3px solid var(--rose); transition: all 0.5s; min-height: 60px; }
+  .disclaimer { margin-top: 1rem; font-size: 0.72rem; color: rgba(255,255,255,0.3); font-style: italic; }
+
+  /* SEGMENTS */
+  .segments { padding: 6rem 4rem; }
+  .segments-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+  .segment-card { background: white; border-radius: 20px; padding: 1.8rem; border: 1px solid rgba(232,100,122,0.1); transition: transform 0.3s, box-shadow 0.3s; }
+  .segment-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(232,100,122,0.1); }
+  .segment-icon { font-size: 2rem; margin-bottom: 1rem; }
+  .segment-card h3 { font-size: 0.92rem; font-weight: 500; margin-bottom: 0.5rem; }
+  .segment-card p { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+
+  /* COST */
+  .cost-section { padding: 6rem 4rem; background: #faf5f7; }
+
+  .phase-tabs { display: flex; gap: 0.5rem; margin-bottom: 2.5rem; flex-wrap: wrap; }
+  .phase-tab { padding: 0.6rem 1.4rem; border-radius: 100px; font-size: 0.82rem; font-weight: 500; cursor: pointer; border: 1.5px solid rgba(232,100,122,0.2); background: white; color: var(--muted); transition: all 0.2s; }
+  .phase-tab.active { background: var(--rose); color: white; border-color: var(--rose); }
+  .phase-tab:hover:not(.active) { border-color: var(--rose); color: var(--rose); }
+
+  .phase-content { display: none; }
+  .phase-content.active { display: block; animation: fadeUp 0.3s ease; }
+
+  .cost-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+  .cost-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2rem; }
+
+  .cost-card { background: white; border-radius: 20px; padding: 2rem; border: 1px solid rgba(232,100,122,0.1); }
+  .cost-card h3 { font-size: 0.92rem; font-weight: 600; margin-bottom: 1.2rem; padding-bottom: 0.8rem; border-bottom: 1px solid rgba(232,100,122,0.1); display: flex; align-items: center; gap: 0.5rem; }
+  .cost-item { display: flex; justify-content: space-between; align-items: flex-start; padding: 0.55rem 0; font-size: 0.83rem; border-bottom: 1px solid #f8f8f8; gap: 1rem; }
+  .cost-item:last-child { border-bottom: none; }
+  .cost-item span:first-child { color: var(--muted); line-height: 1.4; }
+  .cost-item span:last-child { font-weight: 500; color: var(--dark); white-space: nowrap; }
+  .cost-total { display: flex; justify-content: space-between; align-items: center; padding: 0.8rem 0; margin-top: 0.5rem; border-top: 2px solid var(--rose); font-weight: 600; }
+  .cost-total span:last-child { color: var(--rose); font-size: 1.05rem; }
+
+  .revenue-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem; }
+  .revenue-card { background: white; border-radius: 20px; padding: 2rem; border: 1px solid rgba(76,175,130,0.2); }
+  .revenue-card h3 { font-size: 0.92rem; font-weight: 600; margin-bottom: 1.2rem; padding-bottom: 0.8rem; border-bottom: 1px solid rgba(76,175,130,0.1); color: var(--green); }
+  .revenue-item { display: flex; justify-content: space-between; padding: 0.55rem 0; font-size: 0.83rem; border-bottom: 1px solid #f8f8f8; gap: 1rem; }
+  .revenue-item:last-child { border-bottom: none; }
+  .revenue-item span:first-child { color: var(--muted); }
+  .revenue-item span:last-child { font-weight: 500; color: var(--green); white-space: nowrap; }
+  .revenue-total { display: flex; justify-content: space-between; padding: 0.8rem 0; margin-top: 0.5rem; border-top: 2px solid var(--green); font-weight: 600; }
+  .revenue-total span:last-child { color: var(--green); font-size: 1.05rem; }
+
+  .summary-bar { background: var(--dark); border-radius: 20px; padding: 2rem 2.5rem; margin-top: 2rem; display: flex; justify-content: space-around; align-items: center; flex-wrap: wrap; gap: 1.5rem; }
+  .summary-item { text-align: center; }
+  .summary-item .s-label { font-size: 0.72rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.4rem; }
+  .summary-item .s-val { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 700; }
+  .summary-item .s-val.red { color: #E85555; }
+  .summary-item .s-val.green { color: #4CAF82; }
+  .summary-item .s-val.yellow { color: #F5C842; }
+  .summary-divider { width: 1px; height: 40px; background: rgba(255,255,255,0.1); }
+
+  .phase-note { font-size: 0.78rem; color: var(--muted); font-style: italic; margin-top: 1rem; padding: 0.8rem 1rem; background: rgba(232,100,122,0.05); border-radius: 8px; }
+
+  /* FOOTER */
+  footer { padding: 3rem 4rem; border-top: 1px solid rgba(232,100,122,0.1); display: flex; align-items: center; justify-content: space-between; }
+  .footer-logo { font-family: 'Playfair Display', serif; font-size: 1.3rem; color: var(--rose); }
+  .footer-copy { font-size: 0.78rem; color: var(--muted); }
+  .footer-slogan { font-size: 0.78rem; font-style: italic; color: var(--rose); }
+
+  @media (max-width: 768px) {
+    nav { padding: 1rem 1.5rem; }
+    .nav-links { display: none; }
+    .hero { grid-template-columns: 1fr; padding: 6rem 1.5rem 3rem; }
+    .hero-visual { display: none; }
+    .how, .layers-section, .simulator, .segments, .cost-section { padding: 4rem 1.5rem; }
+    .steps, .layers-layout, .sim-layout, .segments-grid, .cost-grid { grid-template-columns: 1fr; }
+    .steps::before { display: none; }
+    footer { flex-direction: column; gap: 0.8rem; text-align: center; padding: 2rem 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">Viva<span>Fem</span></div>
+  <div class="nav-links">
+    <a href="#how">Nasıl Çalışır</a>
+    <a href="#layers">Ped Yapısı</a>
+    <a href="#simulator">Demo</a>
+    <a href="#simulator" class="nav-cta">Erken Erişim</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="hero-text">
+    <div class="hero-badge">FemTech İnovasyonu 2026</div>
+    <h1>Erken Tespit.<br><em>Her Döngüde.</em></h1>
+    <div class="hero-slogan">"Bu sistem tanı koymaz, erken farkındalık ve yönlendirme sağlar."</div>
+    <p class="hero-sub">pH biyosensörü entegre akıllı ped ile vajinal enfeksiyonları evde, erken aşamada fark et. Doktora gitmeden önce bilinçli ol.</p>
+    <div class="hero-actions">
+      <a href="#simulator" class="btn-primary">Demo'yu Dene</a>
+      <a href="#how" class="btn-ghost">Nasıl çalışır</a>
+    </div>
+<div class="hero-photos">
+  <img src="urun1.png" alt="VivaFem ürün ">
+</div>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="phone-status"><span>9:41</span><span>●●● 🔋</span></div>
+        <div class="app-header">
+          <div class="app-header-label">VivaFem · Aktif Tarama</div>
+          <div class="app-header-title">pH Analizi</div>
+        </div>
+        <div class="app-body">
+          <div class="scan-area">
+            <div class="scan-line"></div>
+            <div class="scan-icon">🔬</div>
+            <div class="scan-label">Kamerayı sensör<br>alanına tut</div>
+          </div>
+          <div class="result-chip">Normal pH Aralığı Tespit Edildi</div>
+          <div style="margin-top:1rem;">
+            <div style="font-size:0.55rem;color:#999;margin-bottom:0.4rem;">pH Seviyesi</div>
+            <div class="ph-bar-mini"><div class="ph-indicator"></div></div>
+            <div class="ph-labels"><span>3.5</span><span>4.5</span><span>5.5</span><span>7+</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how" id="how">
+  <div class="section-label">Basit Süreç</div>
+  <div class="section-title">Üç adımda içiniz rahat etsin</div>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-icon">🩸</div>
+      <h3>Normal Kullan</h3>
+      <p>VivaFem pedi sıradan bir ped gibi kullan. Entegre pH sensörü arka planda sessizce çalışır, ekstra bir adım gerekmez.</p>
+      <div class="slide-quote">"Ciltle temas eden yüzeyde organik pamuk/selüloz bazlı nefes alabilen yapı kullanıyoruz."</div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-icon">📱</div>
+      <h3>Uygulama ile Tara</h3>
+      <p>VivaFem uygulamasını aç, kamerayı sensör şeridine tut. Renk algılama algoritmamız saniyeler içinde pH değerini okur.</p>
+      <div class="slide-quote">"pH göstergesi iç katmanda yer alır; şeffaf pencereden okunur ve uygulama ile analiz edilir."</div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-icon">✅</div>
+      <h3>Sonucunu Al</h3>
+      <p>Vajinal sağlığın hakkında anında geri bildirim al. Bir şey dikkat çekerse uygulama seni jinekologuna yönlendirir.</p>
+      <div class="slide-quote">"Bu sistem tanı koymaz, erken farkındalık ve yönlendirme sağlar."</div>
+    </div>
+  </div>
+</section>
+
+<!-- PAD LAYERS -->
+<section class="layers-section" id="layers">
+  <div class="section-label">Sürdürülebilir Teknoloji</div>
+  <div class="section-title">Akıllı Ped Katman Yapısı</div>
+  <div class="layers-layout">
+    <div class="layers-visual">
+      <div class="pad-stack">
+        <div class="pad-layer layer-1" onclick="showLayer(1)">
+          <div class="layer-num">1</div>
+          <div class="layer-info">
+            <div class="layer-name">Üst Yüzey</div>
+            <div class="layer-mat">Organik pamuk / selüloz bazlı nonwoven</div>
+          </div>
+          <div class="layer-icon">🌿</div>
+        </div>
+        <div class="pad-layer layer-2" onclick="showLayer(2)">
+          <div class="layer-num">2</div>
+          <div class="layer-info">
+            <div class="layer-name">Sıvı Dağıtım Katmanı</div>
+            <div class="layer-mat">İnce selüloz lifli dağıtım tabakası</div>
+          </div>
+          <div class="layer-icon">💧</div>
+        </div>
+        <div class="pad-layer layer-3" onclick="showLayer(3)">
+          <div class="layer-num">3</div>
+          <div class="layer-info">
+            <div class="layer-name">Sensör Penceresi (pH Alanı)</div>
+            <div class="layer-mat">Medikal sınıf pH indikatör şerit</div>
+          </div>
+          <div class="layer-icon">🔬</div>
+        </div>
+        <div class="pad-layer layer-4" onclick="showLayer(4)">
+          <div class="layer-num">4</div>
+          <div class="layer-info">
+            <div class="layer-name">Emici Çekirdek</div>
+            <div class="layer-mat">Biyobozunur selüloz (wood pulp)</div>
+          </div>
+          <div class="layer-icon">🪵</div>
+        </div>
+        <div class="pad-layer layer-5" onclick="showLayer(5)">
+          <div class="layer-num">5</div>
+          <div class="layer-info">
+            <div class="layer-name">Alt Bariyer Film</div>
+            <div class="layer-mat">Bio-PE (biyobazlı polietilen)</div>
+          </div>
+          <div class="layer-icon">🛡️</div>
+        </div>
+        <div class="pad-layer layer-6" onclick="showLayer(6)">
+          <div class="layer-num">6</div>
+          <div class="layer-info">
+            <div class="layer-name">Yapıştırıcı & Ambalaj</div>
+            <div class="layer-mat">Su bazlı yapıştırıcı + geri dönüştürülebilir kağıt</div>
+          </div>
+          <div class="layer-icon">♻️</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="layers-details">
+      <div class="layer-detail active" id="detail-1">
+        <div class="detail-tag">Katman 1 — Üst Yüzey</div>
+        <div class="detail-title">Ciltle Temas Eden Katman</div>
+        <div class="detail-desc">Organik pamuk / selüloz bazlı nonwoven kullanılıyor. Parfümsüz, boya içermeyen yapı ile tahrişi minimize ediyoruz. Nefes alabilirlik öncelikli tasarım.</div>
+        <div class="detail-quote">"Ciltle temas eden yüzeyde organik pamuk/selüloz bazlı nefes alabilen yapı kullanıyoruz."</div>
+      </div>
+      <div class="layer-detail" id="detail-2">
+        <div class="detail-tag">Katman 2 — Sıvı Dağıtım</div>
+        <div class="detail-title">Kontrollü Sıvı Taşıma</div>
+        <div class="detail-desc">İnce selüloz lifli dağıtım tabakası, akıntıyı sensör alanına kontrollü ileterek homojen yayılım sağlar. Sensör okumalarının doğruluğu bu katmana bağlı.</div>
+        <div class="detail-quote">"Sıvıyı kontrollü taşıyan dağıtım katmanı ile sensör okumalarını stabilize ediyoruz."</div>
+      </div>
+      <div class="layer-detail" id="detail-3">
+        <div class="detail-tag">Katman 3 — Sensör Penceresi</div>
+        <div class="detail-title">pH Ölçüm Teknolojisi</div>
+        <div class="detail-desc">Medikal sınıf pH indikatör şerit iç katmanda yer alır, ciltle direkt temas etmez. Küçük şeffaf pencere sayesinde kullanıcı renk değişimini gözle görebilir, uygulama ile analiz eder.</div>
+        <div class="detail-quote">"pH göstergesi iç katmanda yer alır; şeffaf pencereden okunur ve uygulama ile analiz edilir."</div>
+      </div>
+      <div class="layer-detail" id="detail-4">
+        <div class="detail-tag">Katman 4 — Emici Çekirdek</div>
+        <div class="detail-title">Düşük Plastikli Emicilik</div>
+        <div class="detail-desc">Biyobozunur selüloz (wood pulp) ağırlıklı yapı. SAP (süper emici polimer) miktarı minimum tutularak hem maliyet hem çevre dengesi gözetiliyor.</div>
+        <div class="detail-quote">"Emici çekirdekte selüloz ağırlıklı, düşük plastik içerikli yapı hedefliyoruz."</div>
+      </div>
+      <div class="layer-detail" id="detail-5">
+        <div class="detail-tag">Katman 5 — Alt Bariyer</div>
+        <div class="detail-title">Biyobazlı Sızıntı Önleme</div>
+        <div class="detail-desc">Fosil yerine biyobazlı Bio-PE film kullanılıyor. Biyobazlıdır ama biyobozunur değildir; karbon ayak izini anlamlı ölçüde düşürür.</div>
+        <div class="detail-quote">"Alt bariyerde fosil yerine biyobazlı Bio-PE kullanarak karbon ayak izini azaltıyoruz."</div>
+      </div>
+      <div class="layer-detail" id="detail-6">
+        <div class="detail-tag">Katman 6 — Ambalaj</div>
+        <div class="detail-title">Dijital Ekosistem & Sürdürülebilir Paket</div>
+        <div class="detail-desc">Su bazlı yapıştırıcı, geri dönüştürülebilir kağıt ambalaj ve minimal plastik. Ürün kutusunda QR kod ile uygulamaya, topluluğa ve içeriğe erişim.</div>
+        <div class="detail-quote">"Minimal plastikli geri dönüştürülebilir ambalaj ve QR ile dijital ekosistem."</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CUSTOMER SEGMENTS -->
+<section class="segments" id="segments">
+  <div class="section-label">Hedef Kitle</div>
+  <div class="section-title">Kim için tasarladık?</div>
+  <div class="segments-grid">
+    <div class="segment-card">
+      <div class="segment-icon">🩺</div>
+      <h3>Menstrüasyon döngüsü olan her kadın</h3>
+      <p>15–45 yaş arası, düzenli döngüsü olan ve sağlığını takip etmek isteyen kadınlar.</p>
+    </div>
+    <div class="segment-card">
+      <div class="segment-icon">⚠️</div>
+      <h3>Sürekli enfeksiyon yaşayan kadınlar</h3>
+      <p>Tekrarlayan bakteriyel vajinoz veya mantar enfeksiyonu deneyimi yaşayanlar.</p>
+    </div>
+    <div class="segment-card">
+      <div class="segment-icon">🧬</div>
+      <h3>Hormonal sorunları olan kadınlar</h3>
+      <p>PCOS, endometriozis veya hormonal dengesizlik yaşayan kadınlar.</p>
+    </div>
+    <div class="segment-card">
+      <div class="segment-icon">👩‍⚕️</div>
+      <h3>Jinekologlar</h3>
+      <p>Hasta takibini dijitalleştirmek ve erken uyarı verisi almak isteyen sağlık profesyonelleri.</p>
+    </div>
+  </div>
+</section>
+
+<!-- pH SIMULATOR -->
+<section class="simulator" id="simulator">
+  <div class="section-label">İnteraktif Demo</div>
+  <div class="section-title">pH Simülatörünü Dene</div>
+  <div class="sim-layout">
+    <div class="sim-controls">
+      <p class="sim-desc">Aşağıdan semptomlarını seç ve "Analiz Et" butonuna bas. VivaFem'in pH değerini nasıl okuduğunu ve yorumladığını simüle et.</p>
+      <div class="symptoms-list">
+        <button class="symptom-btn active" onclick="toggleSymptom(this, 'normal')" data-type="normal">
+          <span class="dot"></span> Semptom yok — rutin kontrol
+        </button>
+        <button class="symptom-btn" onclick="toggleSymptom(this, 'mild')" data-type="mild">
+          <span class="dot"></span> Hafif kaşıntı veya alışılmadık akıntı
+        </button>
+        <button class="symptom-btn" onclick="toggleSymptom(this, 'bv')" data-type="bv">
+          <span class="dot"></span> Güçlü koku, gri/beyaz akıntı
+        </button>
+        <button class="symptom-btn" onclick="toggleSymptom(this, 'yeast')" data-type="yeast">
+          <span class="dot"></span> Yoğun beyaz akıntı, yanma hissi
+        </button>
+      </div>
+      <button class="scan-btn" onclick="runScan()">🔬 Analiz Et</button>
+    </div>
+    <div class="sim-result">
+      <div class="result-header">VivaFem Analiz Sonucu</div>
+      <div class="ph-display" id="phValue" style="color: #4CAF82;">4.2</div>
+      <div class="ph-status" id="phStatus" style="color: #4CAF82;">✓ Sağlıklı Aralık</div>
+      <div class="ph-bar"><div class="ph-needle" id="phNeedle" style="left: 55%;"></div></div>
+      <div class="ph-scale-labels"><span>3.5 Asidik</span><span>4.5 Normal</span><span>6.0 Dikkat</span><span>7+ Yüksek</span></div>
+      <div class="recommendation" id="recommendation">Vajinal pH sağlıklı aralıkta (3.8–4.5). Normal laktobasil aktivitesi tespit edildi. Herhangi bir işlem gerekmez — aylık takibini sürdür.</div>
+      <div class="disclaimer" id="disclaimer">⚠ Bu sistem tanı koymaz. Erken farkındalık ve yönlendirme sağlar.</div>
+    </div>
+  </div>
+</section>
+
+<!-- COST SECTION REMOVED - Internal document only -->
+<section class="cost-section" id="cost" style="display:none;">
+  <div class="section-label">Maliyet Analizi</div>
+  <div class="section-title">Faz faz maliyet & gelir projeksiyonu</div>
+
+  <div class="phase-tabs">
+    <div class="phase-tab active" onclick="showPhase('mvp')">🚀 Faz 1 — MVP</div>
+    <div class="phase-tab" onclick="showPhase('growth')">📈 Faz 2 — Büyüme</div>
+    <div class="phase-tab" onclick="showPhase('scale')">🌍 Faz 3 — Ölçekleme</div>
+    <div class="phase-tab" onclick="showPhase('gelir')">💰 Gelir vs Gider</div>
+  </div>
+
+  <!-- FAZ 1: MVP -->
+  <div class="phase-content active" id="phase-mvp">
+    <div class="cost-grid">
+      <div class="cost-card">
+        <h3>🏭 Ped Üretim (8'li 1 Kutu — Prototip)</h3>
+        <div class="cost-item"><span>Biyouyumlu pH indikatör şerit</span><span>25 – 35 ₺</span></div>
+        <div class="cost-item"><span>Nefes alan şeffaf polimer</span><span>12 – 15 ₺</span></div>
+        <div class="cost-item"><span>Lazer delikli mikro-gözenekli mPE</span><span>12 – 15 ₺</span></div>
+        <div class="cost-item"><span>Emici çekirdek & yapışkan</span><span>6 – 8 ₺</span></div>
+        <div class="cost-item"><span>Organik pamuk üst yüzey</span><span>8 – 10 ₺</span></div>
+        <div class="cost-item"><span>Kağıt paketleme & kutu</span><span>10 – 12 ₺</span></div>
+        <div class="cost-item"><span>Lazer kesim & steril paketleme</span><span>15 – 20 ₺</span></div>
+        <div class="cost-total"><span>Toplam Üretim (kutu başı)</span><span>76 – 100 ₺</span></div>
+      </div>
+      <div>
+        <div class="cost-card" style="margin-bottom:1.5rem;">
+          <h3>📱 Mobil Uygulama (Flutter)</h3>
+          <div class="cost-item"><span>Uygulama geliştirme (in-house)</span><span>0 ₺</span></div>
+          <div class="cost-item"><span>Google Play lisansı</span><span>700 ₺ (tek seferlik)</span></div>
+          <div class="cost-item"><span>App Store lisansı (iOS)</span><span>3.300 ₺/yıl</span></div>
+          <div class="cost-item"><span>Firebase (free tier)</span><span>0 ₺/ay</span></div>
+          <div class="cost-item"><span>Renk algılama algoritması (in-house)</span><span>0 ₺</span></div>
+          <div class="cost-total"><span>Toplam Uygulama</span><span>700 – 4.000 ₺</span></div>
+        </div>
+        <div class="cost-card">
+          <h3>🌐 Web Sitesi</h3>
+          <div class="cost-item"><span>Web geliştirme (in-house)</span><span>0 ₺</span></div>
+          <div class="cost-item"><span>Domain (vivafem.com)</span><span>300 – 500 ₺/yıl</span></div>
+          <div class="cost-item"><span>GitHub Pages hosting</span><span>0 ₺</span></div>
+          <div class="cost-total"><span>Toplam Web</span><span>300 – 500 ₺/yıl</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="summary-bar">
+      <div class="summary-item"><div class="s-label">Ped Prototipi (50 kutu)</div><div class="s-val red">~5.000 ₺</div></div>
+      <div class="summary-divider"></div>
+      <div class="summary-item"><div class="s-label">Yazılım Toplam</div><div class="s-val red">~5.000 ₺</div></div>
+      <div class="summary-divider"></div>
+      <div class="summary-item"><div class="s-label">MVP Toplam Maliyet</div><div class="s-val yellow">~10.000 ₺</div></div>
+      <div class="summary-divider"></div>
+      <div class="summary-item"><div class="s-label">Süre</div><div class="s-val" style="color:white;">3 – 6 ay</div></div>
+    </div>
+    <div class="phase-note">⚠ MVP fazında klinik validasyon yapılmaz. Kullanıcı testleri ve geri bildirim toplanır. Hedef: 100 aktif kullanıcı.</div>
+  </div>
+
+  <!-- FAZ 2: BÜYÜME -->
+  <div class="phase-content" id="phase-growth">
+    <div class="cost-grid">
+      <div class="cost-card">
+        <h3>🏭 Ürün & Üretim Maliyetleri</h3>
+        <div class="cost-item"><span>Seri üretim (1.000 kutu/ay)</span><span>55 – 70 ₺/kutu</span></div>
+        <div class="cost-item"><span>Depolama & lojistik</span><span>3.000 – 5.000 ₺/ay</span></div>
+        <div class="cost-item"><span>Kalite kontrol & test</span><span>2.000 – 4.000 ₺/ay</span></div>
+        <div class="cost-item"><span>Ambalaj tasarım güncellemesi</span><span>2.000 ₺ (tek seferlik)</span></div>
+        <div class="cost-total"><span>Aylık Üretim Gideri</span><span>60.000 – 80.000 ₺</span></div>
+      </div>
+      <div class="cost-card">
+        <h3>💻 Yazılım & Pazarlama</h3>
+        <div class="cost-item"><span>Firebase (Blaze plan)</span><span>500 – 2.000 ₺/ay</span></div>
+        <div class="cost-item"><span>Sosyal medya reklamları</span><span>5.000 – 10.000 ₺/ay</span></div>
+        <div class="cost-item"><span>İçerik üretimi (blog, video)</span><span>2.000 – 4.000 ₺/ay</span></div>
+        <div class="cost-item"><span>Influencer / doktor iş birlikleri</span><span>3.000 – 8.000 ₺/ay</span></div>
+        <div class="cost-item"><span>Eczane dağıtım komisyonu</span><span>%15 – 20</span></div>
+        <div class="cost-item"><span>Trendyol / Hepsiburada komisyon</span><span>%12 – 18</span></div>
+        <div class="cost-total"><span>Aylık Yazılım & Pazarlama</span><span>10.500 – 24.000 ₺</span></div>
+      </div>
+    </div>
+    <div class="summary-bar">
+      <div class="summary-item"><div class="s-label">Aylık Toplam Gider</div><div class="s-val red">~90.000 ₺</div></div>
+      <div class="summary-divider"></div>
+      <div class="summary-item"><div class="s-label">Hedef Satış (1.000 kutu)</div><div class="s-val green">~150.000 ₺</div></div>
+      <div class="summary-divider"></div>
+      <div class="summary-item"><div class="s-label">Aylık Net Kâr</div><div class="s-val green">~60.000 ₺</div></div>
+      <div class="summary-divider"></div>
+      <div class="summary-item"><div class="s-label">Süre</div><div class="s-val" style="color:white;">6 – 18 ay</div></div>
+    </div>
+    <div class="phase-note">📌 Bu fazda TİTCK başvurusu yapılır, klinik validasyon süreci başlatılır. Eczane zinciriyle pilot anlaşma hedeflenir.</div>
+  </div>
+
+  <!-- FAZ 3: ÖLÇEKLEME -->
+  <div class="phase-content" id="phase-scale">
+    <div class="cost-grid-3">
+      <div class="cost-card">
+        <h3>🌍 Uluslararası Genişleme</h3>
+        <div class="cost-item"><span>AB pazarı CE belgesi</span><span>50.000 – 150.000 ₺</span></div>
+        <div class="cost-item"><span>Yerel dil desteği (uygulama)</span><span>10.000 – 20.000 ₺</span></div>
+        <div class="cost-item"><span>Uluslararası lojistik</span><span>15.000 – 30.000 ₺/ay</span></div>
+        <div class="cost-total"><span>Genişleme Yatırımı</span><span>75.000+ ₺</span></div>
+      </div>
+      <div class="cost-card">
+        <h3>🤖 Teknoloji Yatırımı</h3>
+        <div class="cost-item"><span>AI model geliştirme</span><span>20.000 – 50.000 ₺</span></div>
+        <div class="cost-item"><span>Bulut altyapısı (AWS/GCP)</span><span>5.000 – 15.000 ₺/ay</span></div>
+        <div class="cost-item"><span>Veri güvenliği & KVKK/GDPR</span><span>10.000 – 25.000 ₺</span></div>
+        <div class="cost-total"><span>Teknoloji Yatırımı</span><span>35.000+ ₺</span></div>
+      </div>
+      <div class="cost-card">
+        <h3>👥 Ekip Büyümesi</h3>
+        <div class="cost-item"><span>Yazılım geliştirici (x2)</span><span>40.000 – 60.000 ₺/ay</span></div>
+        <div class="cost-item"><span>Pazarlama uzmanı</span><span>20.000 – 35.000 ₺/ay</span></div>
+        <div class="cost-item"><span>Biyomedikal danışman</span><span>15.000 – 25.000 ₺/ay</span></div>
+        <div class="cost-total"><span>Aylık Personel</span><span>75.000 – 120.000 ₺</span></div>
+      </div>
+    </div>
+    <div class="summary-bar">
+      <div class="summary-item"><div class="s-label">Yıllık Gider</div><div class="s-val red">~3M ₺</div></div>
+      <div class="summary-divider"></div>
+      <div class="summary-item"><div class="s-label">Hedef Ciro</div><div class="s-val green">~8M ₺</div></div>
+      <div class="summary-divider"></div>
+      <div class="summary-item"><div class="s-label">Yıllık Net Kâr</div><div class="s-val green">~5M ₺</div></div>
+      <div class="summary-divider"></div>
+      <div class="summary-item"><div class="s-label">Süre</div><div class="s-val" style="color:white;">18 ay+</div></div>
+    </div>
+  </div>
+
+  <!-- GELİR VS GİDER -->
+  <div class="phase-content" id="phase-gelir">
+    <div class="revenue-grid">
+      <div class="revenue-card">
+        <h3>💚 Gelir Akışları</h3>
+        <div class="revenue-item"><span>Akıllı ped satışı (kutu başı)</span><span>150 – 200 ₺</span></div>
+        <div class="revenue-item"><span>Uygulama aboneliği (aylık)</span><span>29 – 49 ₺/kullanıcı</span></div>
+        <div class="revenue-item"><span>Anonim veri lisanslama</span><span>proje başı</span></div>
+        <div class="revenue-item"><span>Klinik / hastane toplu satış</span><span>anlaşmaya göre</span></div>
+        <div class="revenue-item"><span>E-ticaret (Trendyol, Hepsiburada)</span><span>%82 – 88 net</span></div>
+        <div class="revenue-item"><span>Eczane kanalı</span><span>%80 – 85 net</span></div>
+        <div class="revenue-total"><span>Aylık Hedef Gelir (Faz 2)</span><span>150.000 ₺+</span></div>
+      </div>
+      <div class="cost-card">
+        <h3>🔴 Gider Kalemleri</h3>
+        <div class="cost-item"><span>Üretim (1.000 kutu)</span><span>55.000 – 70.000 ₺</span></div>
+        <div class="cost-item"><span>Pazarlama & reklam</span><span>10.000 – 18.000 ₺</span></div>
+        <div class="cost-item"><span>Yazılım & altyapı</span><span>2.000 – 5.000 ₺</span></div>
+        <div class="cost-item"><span>Lojistik & depolama</span><span>3.000 – 5.000 ₺</span></div>
+        <div class="cost-item"><span>Hukuki & uyumluluk (KVKK)</span><span>2.000 – 4.000 ₺</span></div>
+        <div class="cost-item"><span>Genel giderler</span><span>3.000 – 5.000 ₺</span></div>
+        <div class="cost-total"><span>Aylık Toplam Gider</span><span>75.000 – 107.000 ₺</span></div>
+      </div>
+    </div>
+    <div class="summary-bar">
+      <div class="summary-item"><div class="s-label">Başabaş Noktası</div><div class="s-val yellow">~500 kutu/ay</div></div>
+      <div class="summary-divider"></div>
+      <div class="summary-item"><div class="s-label">Kâr Marjı (Faz 2)</div><div class="s-val green">%40 – 55</div></div>
+      <div class="summary-divider"></div>
+      <div class="summary-item"><div class="s-label">Yatırım Geri Dönüşü</div><div class="s-val green">8 – 14 ay</div></div>
+      <div class="summary-divider"></div>
+      <div class="summary-item"><div class="s-label">MVP Yatırım İhtiyacı</div><div class="s-val yellow">~10.000 ₺</div></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">VivaFem</div>
+  <div class="footer-slogan">"Bu sistem tanı koymaz, erken farkındalık ve yönlendirme sağlar."</div>
+  <div class="footer-copy">Tasarlayan: VivaFem · 28.02.2026 · Versiyon 1</div>
+</footer>
+
+<script>
+  let selectedType = 'normal';
+
+  function toggleSymptom(btn, type) {
+    document.querySelectorAll('.symptom-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedType = type;
+  }
+
+  const profiles = {
+    normal: { ph: 4.2, color: '#4CAF82', status: '✓ Sağlıklı Aralık', needle: '55%', rec: 'Vajinal pH sağlıklı aralıkta (3.8–4.5). Normal laktobasil aktivitesi tespit edildi. Herhangi bir işlem gerekmez — aylık takibini sürdür.' },
+    mild: { ph: 5.1, color: '#F5C842', status: '⚠ Hafif Yükselmiş', needle: '70%', rec: 'pH normalin biraz üzerinde. Erken aşama dengesizliğe işaret edebilir. 24–48 saat takip et. Semptomlar devam ederse jinekologuna danış.' },
+    bv: { ph: 6.3, color: '#E85555', status: '✗ Bakteriyel Vajinoz Olası', needle: '85%', rec: 'Yüksek pH tespit edildi; bakteriyel vajinoza işaret edebilir. Jinekologuna danışmanı öneriyoruz. Erken tedavi komplikasyonları önler.' },
+    yeast: { ph: 3.8, color: '#F5A442', status: '⚠ Asidik — Mantar Enfeksiyonu Paterni', needle: '35%', rec: 'Düşük pH ile birlikte bildirilen semptomlar mantar enfeksiyonuna işaret edebilir. Kesin tanı için bir sağlık uzmanına danış.' }
+  };
+
+  function runScan() {
+    const btn = document.querySelector('.scan-btn');
+    btn.textContent = '⏳ Analiz ediliyor...';
+    btn.disabled = true;
+    setTimeout(() => {
+      const p = profiles[selectedType];
+      document.getElementById('phValue').textContent = p.ph.toFixed(1);
+      document.getElementById('phValue').style.color = p.color;
+      document.getElementById('phStatus').textContent = p.status;
+      document.getElementById('phStatus').style.color = p.color;
+      document.getElementById('phNeedle').style.left = p.needle;
+      document.getElementById('recommendation').textContent = p.rec;
+      document.getElementById('recommendation').style.borderColor = p.color;
+      btn.textContent = '🔬 Analiz Et';
+      btn.disabled = false;
+    }, 1800);
+  }
+
+  function showLayer(num) {
+    document.querySelectorAll('.layer-detail').forEach(d => d.classList.remove('active'));
+    document.getElementById('detail-' + num).classList.add('active');
+  }
+
+  function showPhase(phase) {
+    document.querySelectorAll('.phase-content').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.phase-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('phase-' + phase).classList.add('active');
+    event.target.classList.add('active');
+  }
+</script>
+</body>
+</html>
